@@ -1,0 +1,17 @@
+<resources>
+    <string name="no_paired">No paired devices found</string>
+    <string name="no_available">No equipment available</string>
+    <string name="paired_devices">Paired devices</string>
+    <string name="unpaired_devices">Unpaired devices</string>
+    <string name="button_scan">Scan</string>
+
+    <string name="no_permission">Permission denied</string>
+    <string name="open_bluetooth">Please turn on Bluetooth first</string>
+    <string name="connect_device">Please connect the device first</string>
+
+    <string name="connect_success">connected successfully</string>
+    <string name="connection_failed">Connection failed</string>
+    <string name="disconnect">Disconnect</string>
+
+
+</resources>
