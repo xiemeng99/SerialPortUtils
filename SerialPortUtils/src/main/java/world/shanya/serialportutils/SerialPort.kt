@@ -31,6 +31,8 @@ class SerialPort private constructor(context: Context) {
 
     //懒汉式SingleTon
     companion object {
+        const val DATA_HEX = 0x584
+        const val DATA_STRING = 0x585
         private var instance: SerialPort ?= null
         fun getInstance(context: Context): SerialPort{
             val temp = instance
@@ -65,6 +67,7 @@ class SerialPort private constructor(context: Context) {
     val pairedDevicesArrayAdapter:ArrayAdapter<String> = ArrayAdapter(context,R.layout.device_name)
     val unPairedDevicesArrayAdapter:ArrayAdapter<String> = ArrayAdapter(context,R.layout.device_name)
 
+    var dataType = DATA_STRING
     private var readThreadStarted = false
 
     /**
@@ -253,7 +256,15 @@ class SerialPort private constructor(context: Context) {
                 }
                 if (flag){
                     s = String(buffer,StandardCharsets.UTF_8)
-                    readDataCallback?.readData(s)
+                    if (dataType == DATA_STRING){
+                        readDataCallback?.readData(s)
+                    }else{
+                        val sb = StringBuilder()
+                        for (i in s.toCharArray()){
+                            sb.append("${i.toInt().toString(16)} ")
+                        }
+                        readDataCallback?.readData(sb.toString())
+                    }
                     flag = false
                 }
             }

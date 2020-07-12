@@ -19,10 +19,14 @@ class MainActivity : AppCompatActivity() {
 
         val serialPort1 = SerialPort.getInstance(this)
 
+        serialPort.dataType = SerialPort.DATA_HEX
+
         serialPort.getReadData(object :SerialPort.ReadDataCallback{
             override fun readData(data: String) {
                 MainScope().launch {
-                    Toast.makeText(this@MainActivity,data,Toast.LENGTH_SHORT).show()
+
+                    println(data)
+
                 }
             }
         })
