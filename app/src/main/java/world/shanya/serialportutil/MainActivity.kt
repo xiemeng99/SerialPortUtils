@@ -17,8 +17,6 @@ class MainActivity : AppCompatActivity() {
 
         val serialPort = SerialPort.getInstance(this)
 
-        val serialPort1 = SerialPort.getInstance(this)
-
         serialPort.dataType = SerialPort.DATA_HEX
 
         serialPort.getReadData(object :SerialPort.ReadDataCallback{
@@ -32,12 +30,10 @@ class MainActivity : AppCompatActivity() {
         })
 
         button.setOnClickListener {
-            println(serialPort)
-            println(serialPort1)
+            serialPort.sendData("asd\r\n")
         }
 
         button2.setOnClickListener {
-//            startActivity(Intent(this,SearchActivity::class.java))
             serialPort.openSearchPage(this)
         }
     }
