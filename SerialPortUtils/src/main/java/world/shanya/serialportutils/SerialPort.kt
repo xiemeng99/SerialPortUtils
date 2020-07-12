@@ -58,7 +58,7 @@ class SerialPort private constructor(private val context: Context) {
     private var readDataCallback: ReadDataCallback ?= null
 
     //SPP服务UUID号
-    private val UUID = "00001101-0000-1000-8000-00805F9B34FB"
+    private val uuid = "00001101-0000-1000-8000-00805F9B34FB"
 
     //获取蓝牙设配器
     private val bluetoothAdapter:BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
@@ -162,7 +162,7 @@ class SerialPort private constructor(private val context: Context) {
     * @Version 1.0.0
     */
     val devicesClickListener =
-        AdapterView.OnItemClickListener { parent, view, position, id ->
+        AdapterView.OnItemClickListener { _, view, _, _ ->
             if (!bluetoothAdapter.isEnabled){
                 Toast.makeText(context,context.getString(R.string.open_bluetooth),Toast.LENGTH_SHORT).show()
                 return@OnItemClickListener
@@ -175,7 +175,7 @@ class SerialPort private constructor(private val context: Context) {
             val address = info.substring(info.length - 17)
             val bluetoothDevice = bluetoothAdapter.getRemoteDevice(address)
             try {
-                bluetoothSocket = bluetoothDevice.createRfcommSocketToServiceRecord(java.util.UUID.fromString(UUID))
+                bluetoothSocket = bluetoothDevice.createRfcommSocketToServiceRecord(java.util.UUID.fromString(uuid))
                 bluetoothSocket?.connect()
                 connectionCallback?.connectionResult(true)
                 Toast.makeText(
@@ -238,7 +238,7 @@ class SerialPort private constructor(private val context: Context) {
         @RequiresApi(Build.VERSION_CODES.KITKAT)
         override fun run() {
             super.run()
-            var len: Int = 0
+            var len: Int
             var buffer = ByteArray(0)
             var s: String
             var flag = false
