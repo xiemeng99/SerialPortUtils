@@ -9,10 +9,9 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.TextView
-import android.widget.Toast
+import android.view.MotionEvent
+import android.view.View
+import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import java.io.IOException
@@ -69,6 +68,17 @@ class SerialPort private constructor(private val context: Context) {
 
     var dataType = DATA_STRING
     private var readThreadStarted = false
+
+    var switchOnText = ""
+    var switchOffText = ""
+    private var switchOnFlag = false
+    private var switchOffFlag = false
+    private var switchOnSendThread:SwitchOnSendThread ?= null
+    private var switchOffSendThread:SwitchOffSendThread ?= null
+    var sendDataDownString = ""
+    private var sendDownFlag = false
+    private var sendUpFlag = false
+    private var buttonDownSendThread:ButtonDownSendThread ?= null
 
     /**
     * 蓝牙设配器各种状态的广播监听器
@@ -333,5 +343,123 @@ class SerialPort private constructor(private val context: Context) {
             n++
         }
         outputStream?.write(bosNew)
+    }
+
+    /**
+    * 开关监听器
+    * @Author Shanya
+    * @Date 2020/7/13 21:52
+    * @Version 1.0.0
+    */
+    val sendDataSwitchListener = View.OnClickListener {
+        if (!switchOnFlag){
+            (it as Button).text = switchOffText
+            switchOnFlag = true
+            switchOffFlag = false
+            switchOnSendThread = SwitchOnSendThread()
+            switchOnSendThread?.start()
+        }else{
+            (it as Button).text = switchOnText
+            switchOnFlag = false
+            switchOffFlag = true
+            switchOffSendThread = SwitchOffSendThread()
+            switchOffSendThread?.start()
+        }
+    }
+
+    /**
+    * 按键监听器
+    * @Author Shanya
+    * @Date 2020/7/12 20:21
+    * @Version 1.0.0
+    */
+    val sendDataButtonListener = View.OnTouchListener { v, event ->
+
+        when(event.action){
+            MotionEvent.ACTION_DOWN -> {
+                if (!sendDownFlag) {
+                    switchOnFlag = false
+                    switchOffFlag = false
+                    buttonDownSendThread = ButtonDownSendThread()
+                    sendDownFlag = true
+                    sendUpFlag = false
+                    buttonDownSendThread?.start()
+                }
+
+                return@OnTouchListener false
+            }
+            MotionEvent.ACTION_CANCEL -> {
+                if (!sendUpFlag) {
+                    switchOnFlag = false
+                    switchOffFlag = false
+                    sendDownFlag = false
+                    sendUpFlag = true
+                    sendData(" ")
+                }
+
+                return@OnTouchListener false
+            }
+            MotionEvent.ACTION_UP -> {
+                if (!sendUpFlag) {
+                    switchOnFlag = false
+                    switchOffFlag = false
+                    sendDownFlag = false
+                    sendUpFlag = true
+                    sendData(" ")
+                }
+
+                return@OnTouchListener false
+            }
+        }
+        v.performClick()
+        return@OnTouchListener false
+    }
+
+    /**
+    * 按键按下发数据线程
+    * @Author Shanya
+    * @Date 2020/7/13 21:12
+    * @Version 1.0.0
+    */
+    inner class ButtonDownSendThread: Thread(){
+        override fun run() {
+            super.run()
+            while (sendDownFlag){
+                sleep(100)
+                send(sendDataDownString)
+            }
+        }
+    }
+
+    /**
+    * 开关打开发数据线程
+    * @Author Shanya
+    * @Date 2020/7/13 21:40
+    * @Version 1.0.0
+    */
+    inner class SwitchOnSendThread: Thread(){
+        override fun run() {
+            super.run()
+            while (switchOnFlag){
+                sleep(100)
+                send(switchOnText)
+            }
+        }
+    }
+
+    /**
+    * 开关关闭发数据线程
+    * @Author Shanya
+    * @Date 2020/7/13 22:13
+    * @Version 1.0.0
+    */
+    inner class SwitchOffSendThread: Thread(){
+        override fun run() {
+            super.run()
+            while (switchOffFlag){
+                sleep(100)
+                send(switchOffText)
+            }
+        }
     }
 }

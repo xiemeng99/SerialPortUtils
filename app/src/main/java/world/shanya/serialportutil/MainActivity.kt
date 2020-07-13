@@ -1,13 +1,10 @@
 package world.shanya.serialportutil
 
-import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-import world.shanya.serialportutils.SearchActivity
 import world.shanya.serialportutils.SerialPort
 
 class MainActivity : AppCompatActivity() {
@@ -29,6 +26,10 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
+        serialPort.sendDataDownString = "down\r\n"
+        serialPort.switchOnText = "on\r\n"
+        serialPort.switchOffText = "off\r\n"
+
         button.setOnClickListener {
             serialPort.sendData("asd\r\n")
         }
@@ -36,5 +37,8 @@ class MainActivity : AppCompatActivity() {
         button2.setOnClickListener {
             serialPort.openSearchPage(this)
         }
+
+        button3.setOnTouchListener(serialPort.sendDataButtonListener)
+        button4.setOnClickListener(serialPort.sendDataSwitchListener)
     }
 }
