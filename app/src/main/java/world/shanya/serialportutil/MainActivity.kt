@@ -23,21 +23,19 @@ class MainActivity : AppCompatActivity() {
 
             }
 
+
         })
 
-        serialPort.sendDataDownString = "down\r\n"
-        serialPort.switchOnText = "on\r\n"
-        serialPort.switchOffText = "off\r\n"
+        serialPort.sendDataType = SerialPort.SEND_DATA_TYPE_HEX
 
         button.setOnClickListener {
-            serialPort.sendData("asd\r\n")
+            serialPort.sendData("A2DFD")
         }
 
         button2.setOnClickListener {
             serialPort.openSearchPage(this)
         }
 
-        button3.setOnTouchListener(serialPort.sendDataButtonListener)
-        button4.setOnClickListener(serialPort.sendDataSwitchListener)
+
     }
 }

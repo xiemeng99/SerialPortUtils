@@ -9,16 +9,17 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
-import android.view.MotionEvent
-import android.view.View
-import android.widget.*
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.TextView
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
 import java.io.IOException
 import java.io.InputStream
+import java.lang.RuntimeException
 import java.nio.charset.StandardCharsets
+import kotlin.experimental.and
 
 
 /**
@@ -72,20 +73,11 @@ class SerialPort private constructor(private val context: Context){
     val pairedDevicesArrayAdapter:ArrayAdapter<String> = ArrayAdapter(context,R.layout.device_name)
     val unPairedDevicesArrayAdapter:ArrayAdapter<String> = ArrayAdapter(context,R.layout.device_name)
 
-    var readDataType = READ_DATA_TYPE_HEX
+    var readDataType = READ_DATA_TYPE_STRING
+    var sendDataType = SEND_DATA_TYPE_STRING
+
+    //接收线程打开标志
     private var readThreadStarted = false
-
-    var switchOnText = ""
-    var switchOffText = ""
-    private var switchOnFlag = false
-    private var switchOffFlag = false
-    private var switchOnSendThread:SwitchOnSendThread ?= null
-    private var switchOffSendThread:SwitchOffSendThread ?= null
-    var sendDataDownString = ""
-    private var sendDownFlag = false
-    private var sendUpFlag = false
-    private var buttonDownSendThread:ButtonDownSendThread ?= null
-
 
 
     /**
@@ -301,7 +293,7 @@ class SerialPort private constructor(private val context: Context){
                     }else{
                         val sb = StringBuilder()
                         for (i in buffer){
-                            sb.append("${String.format("%2x", i)} ")
+                            sb.append("${String.format("%2X", i)} ")
                         }
                         readDataCallback?.readData(sb.toString())
                     }
@@ -311,10 +303,8 @@ class SerialPort private constructor(private val context: Context){
         }
     }
 
-
-
     /**
-    * 发送单组数据，（使用线程发送）
+    * 发送数据，（使用线程发送）
     * @Author Shanya
     * @Date 2020/7/12 18:46
     * @Version 1.0.0
@@ -328,10 +318,38 @@ class SerialPort private constructor(private val context: Context){
             Toast.makeText(context,context.getString(R.string.connect_device),Toast.LENGTH_SHORT).show()
             return
         }
+
         Thread(Runnable {
             send(data)
         }).start()
     }
+
+    fun str2HexStr(str: String): ArrayList<Byte>? {
+        val chars = "0123456789ABCDEF".toCharArray()
+        val sb = java.lang.StringBuilder("")
+        val bs = str.toCharArray()
+        var bit = 0
+        var i = 0
+        val intArray = ArrayList<Byte>()
+        if (str.length and 0x01 != 0){
+            throw  RuntimeException("字符个数不是偶数")
+        }
+        while (i < bs.size) {
+            for (j in chars.indices) {
+                if (bs[i] == chars[j]) {
+                    bit += (j * 16)
+                }
+                if (bs[i + 1] == chars[j]) {
+                    bit += j
+                }
+            }
+            intArray.add(bit.toByte())
+            i += 2
+            bit = 0
+        }
+        return intArray
+    }
+
 
     /**
     * 发送数据，对内（直接发送，会造成阻塞）
@@ -340,9 +358,15 @@ class SerialPort private constructor(private val context: Context){
     * @Version 1.0.0
     */
     private fun send(data: String) {
-        var n = 0
         val outputStream = bluetoothSocket?.outputStream
-        val bos = data.toByteArray()
+        var n = 0
+        var bos = data.toByteArray()
+        if (sendDataType == SEND_DATA_TYPE_STRING) {
+            bos = data.toByteArray()
+        }else{
+            bos = str2HexStr(data)?.toList()!!.toByteArray()
+        }
+
         for (bo in bos) {
             if (bo.toInt() == 0x0a) {
                 n++
@@ -362,139 +386,6 @@ class SerialPort private constructor(private val context: Context){
         outputStream?.write(bosNew)
     }
 
-    /**
-    * 开关监听器
-    * @Author Shanya
-    * @Date 2020/7/13 21:52
-    * @Version 1.0.0
-    */
-    val sendDataSwitchListener = View.OnClickListener {
-        if (!bluetoothAdapter.isEnabled){
-            Toast.makeText(context,context.getString(R.string.open_bluetooth),Toast.LENGTH_SHORT).show()
-            return@OnClickListener
-        }
-        if (bluetoothSocket == null) {
-            Toast.makeText(context,context.getString(R.string.connect_device),Toast.LENGTH_SHORT).show()
-            return@OnClickListener
-        }
-        if (!switchOnFlag){
-
-            (it as Button).text = switchOffText
-            switchOnFlag = true
-            switchOffFlag = false
-            switchOnSendThread = SwitchOnSendThread()
-            switchOnSendThread?.start()
-        }else{
-            (it as Button).text = switchOnText
-            switchOnFlag = false
-            switchOffFlag = true
-            switchOffSendThread = SwitchOffSendThread()
-            switchOffSendThread?.start()
-        }
-    }
-
-    /**
-    * 按键监听器
-    * @Author Shanya
-    * @Date 2020/7/12 20:21
-    * @Version 1.0.0
-    */
-    val sendDataButtonListener = View.OnTouchListener { v, event ->
-        if (!bluetoothAdapter.isEnabled){
-            Toast.makeText(context,context.getString(R.string.open_bluetooth),Toast.LENGTH_SHORT).show()
-            return@OnTouchListener false
-        }
-        if (bluetoothSocket == null) {
-            Toast.makeText(context,context.getString(R.string.connect_device),Toast.LENGTH_SHORT).show()
-            return@OnTouchListener false
-        }
-        when(event.action){
-            MotionEvent.ACTION_DOWN -> {
-                if (!sendDownFlag) {
-                    switchOnFlag = false
-                    switchOffFlag = false
-                    buttonDownSendThread = ButtonDownSendThread()
-                    sendDownFlag = true
-                    sendUpFlag = false
-                    buttonDownSendThread?.start()
-                }
-
-                return@OnTouchListener false
-            }
-            MotionEvent.ACTION_CANCEL -> {
-                if (!sendUpFlag) {
-                    switchOnFlag = false
-                    switchOffFlag = false
-                    sendDownFlag = false
-                    sendUpFlag = true
-                    sendData(" ")
-                }
-
-                return@OnTouchListener false
-            }
-            MotionEvent.ACTION_UP -> {
-                if (!sendUpFlag) {
-                    switchOnFlag = false
-                    switchOffFlag = false
-                    sendDownFlag = false
-                    sendUpFlag = true
-                    sendData(" ")
-                }
-
-                return@OnTouchListener false
-            }
-        }
-        v.performClick()
-        return@OnTouchListener false
-    }
-
-    /**
-    * 按键按下发数据线程
-    * @Author Shanya
-    * @Date 2020/7/13 21:12
-    * @Version 1.0.0
-    */
-    inner class ButtonDownSendThread: Thread(){
-        override fun run() {
-            super.run()
-            while (sendDownFlag){
-                sleep(100)
-                send(sendDataDownString)
-            }
-        }
-    }
-
-    /**
-    * 开关打开发数据线程
-    * @Author Shanya
-    * @Date 2020/7/13 21:40
-    * @Version 1.0.0
-    */
-    inner class SwitchOnSendThread: Thread(){
-        override fun run() {
-            super.run()
-            while (switchOnFlag){
-                sleep(100)
-                send(switchOnText)
-            }
-        }
-    }
-
-    /**
-    * 开关关闭发数据线程
-    * @Author Shanya
-    * @Date 2020/7/13 22:13
-    * @Version 1.0.0
-    */
-    inner class SwitchOffSendThread: Thread(){
-        override fun run() {
-            super.run()
-            while (switchOffFlag){
-                sleep(100)
-                send(switchOffText)
-            }
-        }
-    }
 
 
 
