@@ -26,12 +26,16 @@ import java.nio.charset.StandardCharsets
  * @Date 2020/7/11 20:33
  * @Version 1.0.0
  **/
-class SerialPort private constructor(private val context: Context) {
+class SerialPort private constructor(private val context: Context){
 
     //懒汉式SingleTon
     companion object {
-        const val DATA_HEX = 0x584
-        const val DATA_STRING = 0x585
+
+        const val SEND_DATA_TYPE_HEX = 0x11
+        const val SEND_DATA_TYPE_STRING = 0x12
+        const val READ_DATA_TYPE_HEX = 0x13
+        const val READ_DATA_TYPE_STRING = 0x14
+
         private var instance: SerialPort ?= null
         fun getInstance(context: Context): SerialPort{
             val temp = instance
@@ -66,7 +70,7 @@ class SerialPort private constructor(private val context: Context) {
     val pairedDevicesArrayAdapter:ArrayAdapter<String> = ArrayAdapter(context,R.layout.device_name)
     val unPairedDevicesArrayAdapter:ArrayAdapter<String> = ArrayAdapter(context,R.layout.device_name)
 
-    var dataType = DATA_STRING
+    var readDataType = READ_DATA_TYPE_HEX
     private var readThreadStarted = false
 
     var switchOnText = ""
@@ -79,6 +83,8 @@ class SerialPort private constructor(private val context: Context) {
     private var sendDownFlag = false
     private var sendUpFlag = false
     private var buttonDownSendThread:ButtonDownSendThread ?= null
+
+
 
     /**
     * 蓝牙设配器各种状态的广播监听器
@@ -94,6 +100,7 @@ class SerialPort private constructor(private val context: Context) {
                 if (device != null){
                     if (device.bondState != BluetoothDevice.BOND_BONDED) {
                         unPairedDevicesArrayAdapter.add("${device.name}\n${device.address}")
+
                     }
                 }
             }else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED == action){
@@ -239,6 +246,26 @@ class SerialPort private constructor(private val context: Context) {
     }
 
     /**
+     * 接收数据的回调
+     * @Author Shanya
+     * @Date 2020/7/12 17:19
+     * @Version 1.0.0
+     */
+    interface ReadDataCallback{
+        fun readData(data: String)
+    }
+
+    /**
+    * 获取数据
+    * @Author Shanya
+    * @Date 2020/7/18 21:39
+    * @Version 1.0.0
+    */
+    fun getReceivedData(readDataCallback: ReadDataCallback) {
+        this.readDataCallback = readDataCallback
+    }
+
+    /**
     * 接收数据的线程
     * @Author Shanya
     * @Date 2020/7/12 17:18
@@ -249,8 +276,8 @@ class SerialPort private constructor(private val context: Context) {
         override fun run() {
             super.run()
             var len: Int
+            var receivedData:String
             var buffer = ByteArray(0)
-            var s: String
             var flag = false
             while (true){
                 if (!readThreadStarted) {
@@ -266,13 +293,13 @@ class SerialPort private constructor(private val context: Context) {
                     len = inputStream?.available()!!
                 }
                 if (flag){
-                    s = String(buffer,StandardCharsets.UTF_8)
-                    if (dataType == DATA_STRING){
-                        readDataCallback?.readData(s)
+                    if (readDataType == READ_DATA_TYPE_STRING){
+                        receivedData = String(buffer,StandardCharsets.UTF_8)
+                        readDataCallback?.readData(receivedData)
                     }else{
                         val sb = StringBuilder()
-                        for (i in s.toCharArray()){
-                            sb.append("${i.toInt().toString(16)} ")
+                        for (i in buffer){
+                            sb.append("${String.format("%2x", i)} ")
                         }
                         readDataCallback?.readData(sb.toString())
                     }
@@ -282,19 +309,7 @@ class SerialPort private constructor(private val context: Context) {
         }
     }
 
-    /**
-    * 接收数据的回调
-    * @Author Shanya
-    * @Date 2020/7/12 17:19
-    * @Version 1.0.0
-    */
-    interface ReadDataCallback{
-        fun readData(data: String)
-    }
 
-    fun getReadData(readDataCallback: ReadDataCallback){
-        this.readDataCallback = readDataCallback
-    }
 
     /**
     * 发送单组数据，（使用线程发送）
@@ -462,4 +477,8 @@ class SerialPort private constructor(private val context: Context) {
             }
         }
     }
+
+
+
+
 }

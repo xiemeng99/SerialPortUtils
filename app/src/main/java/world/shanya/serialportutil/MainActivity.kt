@@ -2,6 +2,7 @@ package world.shanya.serialportutil
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -14,16 +15,14 @@ class MainActivity : AppCompatActivity() {
 
         val serialPort = SerialPort.getInstance(this)
 
-        serialPort.dataType = SerialPort.DATA_HEX
+        serialPort.readDataType = SerialPort.READ_DATA_TYPE_HEX
 
-        serialPort.getReadData(object :SerialPort.ReadDataCallback{
+        serialPort.getReceivedData(object :SerialPort.ReadDataCallback{
             override fun readData(data: String) {
-                MainScope().launch {
+                println(data)
 
-                    println(data)
-
-                }
             }
+
         })
 
         serialPort.sendDataDownString = "down\r\n"
