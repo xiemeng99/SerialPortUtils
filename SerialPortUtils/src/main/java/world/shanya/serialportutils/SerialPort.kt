@@ -14,6 +14,8 @@ import android.view.View
 import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 import java.io.IOException
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
@@ -367,7 +369,16 @@ class SerialPort private constructor(private val context: Context){
     * @Version 1.0.0
     */
     val sendDataSwitchListener = View.OnClickListener {
+        if (!bluetoothAdapter.isEnabled){
+            Toast.makeText(context,context.getString(R.string.open_bluetooth),Toast.LENGTH_SHORT).show()
+            return@OnClickListener
+        }
+        if (bluetoothSocket == null) {
+            Toast.makeText(context,context.getString(R.string.connect_device),Toast.LENGTH_SHORT).show()
+            return@OnClickListener
+        }
         if (!switchOnFlag){
+
             (it as Button).text = switchOffText
             switchOnFlag = true
             switchOffFlag = false
@@ -389,7 +400,14 @@ class SerialPort private constructor(private val context: Context){
     * @Version 1.0.0
     */
     val sendDataButtonListener = View.OnTouchListener { v, event ->
-
+        if (!bluetoothAdapter.isEnabled){
+            Toast.makeText(context,context.getString(R.string.open_bluetooth),Toast.LENGTH_SHORT).show()
+            return@OnTouchListener false
+        }
+        if (bluetoothSocket == null) {
+            Toast.makeText(context,context.getString(R.string.connect_device),Toast.LENGTH_SHORT).show()
+            return@OnTouchListener false
+        }
         when(event.action){
             MotionEvent.ACTION_DOWN -> {
                 if (!sendDownFlag) {
