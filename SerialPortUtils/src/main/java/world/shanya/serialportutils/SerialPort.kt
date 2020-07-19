@@ -555,9 +555,24 @@ class SerialPort private constructor(private val context: Context){
         outputStream?.write(bosNew)
     }
 
+    /**
+     * 按键发送线程标志位
+     */
     private var buttonSendFlag = false
+
+    /**
+     * 按键发送线程发送的数据
+     */
     private var buttonSendData = ""
+
+    /**
+     * 按键发送线程
+     */
     private var buttonSendThread = ButtonSendThread()
+
+    /**
+     * 按键发送内容的存储 HashMap
+     */
     private val buttonSendDataHashMap by lazy { HashMap<Int,String>() }
 
     /**
@@ -610,8 +625,10 @@ class SerialPort private constructor(private val context: Context){
              if (!buttonSendDataHashMap.contains(v.id)) {
                  buttonSendData = ""
              }else{
-                 if (buttonSendDataHashMap[v.id] != null) {
-                     templateData = buttonSendDataHashMap[v.id]!!
+                 templateData = if (buttonSendDataHashMap[v.id] != null) {
+                     buttonSendDataHashMap[v.id]!!
+                 }else{
+                     ""
                  }
              }
 
@@ -619,6 +636,9 @@ class SerialPort private constructor(private val context: Context){
               * 根据当前按键的状态进行相应处理
               */
              when (event.action) {
+                 /**
+                  * 按键按下滑动后抬起
+                  */
                  MotionEvent.ACTION_UP -> {
                      buttonSendData = "0"
                      Thread.sleep(10)
@@ -626,6 +646,9 @@ class SerialPort private constructor(private val context: Context){
                      return@OnTouchListener false
                  }
 
+                 /**
+                  * 按键取消按下
+                  */
                  MotionEvent.ACTION_CANCEL -> {
                      buttonSendData = "0"
                      Thread.sleep(10)
@@ -633,6 +656,9 @@ class SerialPort private constructor(private val context: Context){
                      return@OnTouchListener false
                  }
 
+                 /**
+                  * 按键按下
+                  */
                  MotionEvent.ACTION_DOWN -> {
                      buttonSendThread = ButtonSendThread()
                      buttonSendData = templateData
