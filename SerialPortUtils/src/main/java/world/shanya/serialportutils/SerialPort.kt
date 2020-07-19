@@ -19,7 +19,6 @@ import java.io.IOException
 import java.io.InputStream
 import java.lang.RuntimeException
 import java.nio.charset.StandardCharsets
-import kotlin.experimental.and
 
 
 /**
@@ -59,9 +58,9 @@ class SerialPort private constructor(private val context: Context){
     }
 
     //各种状态回调
-    private var scanStatusCallback:ScanStatusCallback ?= null
-    private var connectionCallback:ConnectionCallback ?= null
-    private var readDataCallback: ReadDataCallback ?= null
+    private var scanStatusCallback : ((status:Boolean) -> Unit) ?= null
+    private var connectionCallback : ((result:Boolean) -> Unit) ?= null
+    private var readDataCallback : ((data:String) -> Unit) ?= null
 
     //SPP服务UUID号
     private val uuid = "00001101-0000-1000-8000-00805F9B34FB"
@@ -99,7 +98,7 @@ class SerialPort private constructor(private val context: Context){
                 }
             }else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED == action){
                 //搜索完成
-                scanStatusCallback?.scanStatus(false)
+                scanStatusCallback?.invoke(false)
                 if (unPairedDevicesArrayAdapter.count == 0){
                     //没有搜索到设备
                     unPairedDevicesArrayAdapter.add(context?.getString(R.string.no_available))
@@ -107,7 +106,7 @@ class SerialPort private constructor(private val context: Context){
             }else if (BluetoothDevice.ACTION_ACL_DISCONNECTED == action){
                 val device:BluetoothDevice ?= intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
                 bluetoothSocket = null
-                connectionCallback?.connectionResult(false)
+                connectionCallback?.invoke(false)
                 Toast.makeText(context,"${device?.name}  ${context?.getString(R.string.disconnect)}",Toast.LENGTH_SHORT).show()
             }
         }
@@ -158,11 +157,11 @@ class SerialPort private constructor(private val context: Context){
             }
             if (bluetoothAdapter.isDiscovering){
                 bluetoothAdapter.cancelDiscovery()
-                scanStatusCallback?.scanStatus(false)
+                scanStatusCallback?.invoke(false)
             }
             unPairedDevicesArrayAdapter.clear()
             bluetoothAdapter.startDiscovery()
-            scanStatusCallback?.scanStatus(true)
+            scanStatusCallback?.invoke(true)
         }
     }
 
@@ -188,7 +187,7 @@ class SerialPort private constructor(private val context: Context){
             try {
                 bluetoothSocket = bluetoothDevice.createRfcommSocketToServiceRecord(java.util.UUID.fromString(uuid))
                 bluetoothSocket?.connect()
-                connectionCallback?.connectionResult(true)
+                connectionCallback?.invoke(true)
                 Toast.makeText(
                     context,
                     "${bluetoothDevice.name}  ${context.getString(R.string.connect_success)}",
@@ -201,7 +200,7 @@ class SerialPort private constructor(private val context: Context){
                     readThreadStarted = true
                 }
             }catch (e:IOException){
-                connectionCallback?.connectionResult(false)
+                connectionCallback?.invoke(false)
                 Toast.makeText(context,context.getString(R.string.connection_failed),Toast.LENGTH_SHORT).show()
                 try {
                     bluetoothSocket?.close()
@@ -211,43 +210,21 @@ class SerialPort private constructor(private val context: Context){
             }
         }
 
-    /**
-    * 搜索状态的回调
-    * @Author Shanya
-    * @Date 2020/7/12 16:32
-    * @Version 1.0.0
-    */
-    interface ScanStatusCallback{
-        fun scanStatus(status: Boolean)
-    }
 
-    fun getScanStatus(scanStatusCallback: ScanStatusCallback){
+    fun getScanStatus(scanStatusCallback: (status:Boolean) -> Unit){
         this.scanStatusCallback = scanStatusCallback
     }
-
+    
     /**
-    * 连接状态的回调
+    * 连接状态回调
     * @Author Shanya
-    * @Date 2020/7/12 16:32
+    * @Date 2020/7/19 21:11
     * @Version 1.0.0
     */
-    interface ConnectionCallback{
-        fun connectionResult(result: Boolean)
-    }
-
-    fun getConnectionResult(connectionCallback: ConnectionCallback){
+    fun getConnectionResult(connectionCallback: (result:Boolean) -> Unit){
         this.connectionCallback = connectionCallback
     }
 
-    /**
-     * 接收数据的回调
-     * @Author Shanya
-     * @Date 2020/7/12 17:19
-     * @Version 1.0.0
-     */
-    interface ReadDataCallback{
-        fun readData(data: String)
-    }
 
     /**
     * 获取数据
@@ -255,7 +232,7 @@ class SerialPort private constructor(private val context: Context){
     * @Date 2020/7/18 21:39
     * @Version 1.0.0
     */
-    fun getReceivedData(readDataCallback: ReadDataCallback) {
+    fun getReceivedData(readDataCallback: (data:String) -> Unit) {
         this.readDataCallback = readDataCallback
     }
 
@@ -289,13 +266,13 @@ class SerialPort private constructor(private val context: Context){
                 if (flag){
                     if (readDataType == READ_DATA_TYPE_STRING){
                         receivedData = String(buffer,StandardCharsets.UTF_8)
-                        readDataCallback?.readData(receivedData)
+                        readDataCallback?.invoke(receivedData)
                     }else{
                         val sb = StringBuilder()
                         for (i in buffer){
                             sb.append("${String.format("%2X", i)} ")
                         }
-                        readDataCallback?.readData(sb.toString())
+                        readDataCallback?.invoke(sb.toString())
                     }
                     flag = false
                 }
@@ -324,9 +301,8 @@ class SerialPort private constructor(private val context: Context){
         }).start()
     }
 
-    fun str2HexStr(str: String): ArrayList<Byte>? {
+    private fun stringToHex(str: String): ArrayList<Byte>? {
         val chars = "0123456789ABCDEF".toCharArray()
-        val sb = java.lang.StringBuilder("")
         val bs = str.toCharArray()
         var bit = 0
         var i = 0
@@ -360,11 +336,10 @@ class SerialPort private constructor(private val context: Context){
     private fun send(data: String) {
         val outputStream = bluetoothSocket?.outputStream
         var n = 0
-        var bos = data.toByteArray()
-        if (sendDataType == SEND_DATA_TYPE_STRING) {
-            bos = data.toByteArray()
+        val bos: ByteArray = if (sendDataType == SEND_DATA_TYPE_STRING) {
+            data.toByteArray()
         }else{
-            bos = str2HexStr(data)?.toList()!!.toByteArray()
+            stringToHex(data)?.toList()!!.toByteArray()
         }
 
         for (bo in bos) {

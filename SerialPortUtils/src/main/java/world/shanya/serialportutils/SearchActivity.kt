@@ -15,9 +15,8 @@ class SearchActivity : AppCompatActivity() {
 
         val serialPort = SerialPort.getInstance(this)
 
-        serialPort.getScanStatus(object :SerialPort.ScanStatusCallback{
-            override fun scanStatus(status: Boolean) {
-                if (status){
+        serialPort.getScanStatus{
+                if (it){
                     MainScope().launch {
                         progressBarScan.visibility = View.VISIBLE
                     }
@@ -27,13 +26,10 @@ class SearchActivity : AppCompatActivity() {
                     }
                 }
             }
-        })
 
-        serialPort.getConnectionResult(object :SerialPort.ConnectionCallback{
-            override fun connectionResult(result: Boolean) {
-                finish()
-            }
-        })
+        serialPort.getConnectionResult(){
+            finish()
+        }
 
         listViewPairedDevices.adapter = serialPort.pairedDevicesArrayAdapter
         listViewUnpairedDevices.adapter = serialPort.unPairedDevicesArrayAdapter
