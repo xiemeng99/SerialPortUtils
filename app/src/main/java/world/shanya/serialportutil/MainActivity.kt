@@ -2,9 +2,7 @@ package world.shanya.serialportutil
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import world.shanya.serialportutils.SerialPort
 
@@ -15,27 +13,28 @@ class MainActivity : AppCompatActivity() {
 
         val serialPort = SerialPort.getInstance(this)
 
-        serialPort.readDataType = SerialPort.READ_DATA_TYPE_HEX
+        serialPort.readDataType = SerialPort.READ_DATA_TYPE_STRING
 
-        serialPort.getReceivedData(object :SerialPort.ReadDataCallback{
-            override fun readData(data: String) {
-                println(data)
+        serialPort.getReceivedData{
+            println(it)
+        }
 
-            }
-
-
-        })
-
-        serialPort.sendDataType = SerialPort.SEND_DATA_TYPE_HEX
+        serialPort.sendDataType = SerialPort.SEND_DATA_TYPE_STRING
 
         button.setOnClickListener {
-            serialPort.sendData("A2DFD")
+            serialPort.sendData("Hello")
         }
 
         button2.setOnClickListener {
             serialPort.openSearchPage(this)
         }
 
+        serialPort.setButtonSendData(button3.id,"3")
+        serialPort.setButtonSendData(button4.id,"4")
+
+        button3.setOnTouchListener(serialPort.sendButtonListener)
+
+        button4.setOnTouchListener(serialPort.sendButtonListener)
 
     }
 }
