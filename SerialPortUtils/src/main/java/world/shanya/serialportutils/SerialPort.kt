@@ -9,6 +9,8 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.MotionEvent
 import android.view.View
 import android.widget.*
@@ -838,5 +840,6 @@ class SerialPort private constructor(private val context: Context){
             }
         }
     }
+
 }
 

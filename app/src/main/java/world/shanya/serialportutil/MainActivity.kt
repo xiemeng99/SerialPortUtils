@@ -2,8 +2,10 @@ package world.shanya.serialportutil
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
+import androidx.core.widget.addTextChangedListener
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.launch
 import world.shanya.serialportutils.SerialPort
 
 class MainActivity : AppCompatActivity() {
@@ -47,5 +49,21 @@ class MainActivity : AppCompatActivity() {
 
         button5.setOnClickListener(serialPort.sendSwitchListener)
         button6.setOnClickListener(serialPort.sendSwitchListener)
+
+        val saad = object :TextWatcher{
+            override fun afterTextChanged(s: Editable?) {
+                val ss = s.toString()
+                println(ss)
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+
+            }
+
+        }
     }
 }
