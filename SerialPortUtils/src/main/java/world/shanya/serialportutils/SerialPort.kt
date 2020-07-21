@@ -11,10 +11,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.view.MotionEvent
 import android.view.View
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import java.io.IOException
@@ -138,6 +135,71 @@ class SerialPort private constructor(private val context: Context){
      * 接收线程打开标志
      */
     private var readThreadStarted = false
+
+    /**
+     * 开关发送标志
+     */
+    var switchSendFlag = false
+
+    /**
+     * 开关运行数量
+     */
+    private var switchSendTrueCount = 0
+
+    /**
+     * 开关发送线程发送数据缓存
+     */
+    private val switchSendStringBuilder = StringBuilder()
+
+    /**
+     * 开关发送线程发送数据
+     */
+    var switchSendData = ""
+
+    /**
+     * 开关发送线程
+     */
+    private var switchSendThread = SwitchSendThread()
+
+    /**
+     * 开关发送内容的存储 HashMap
+     */
+    private val switchSendDataHashMap by lazy { HashMap<Int,String>() }
+
+    /**
+     * 开关按键打开时显示内容
+     */
+    val switchOnTextHashMap by lazy { HashMap<Int,String>() }
+
+    /**
+     * 开关按键关闭时显示内容
+     */
+    val switchOffTextHashMap by lazy { HashMap<Int,String>() }
+
+    /**
+     * 开关按键状态
+     */
+    private val switchStatusHashMap by lazy { HashMap<Int,Boolean>() }
+
+    /**
+     * 按键发送线程标志位
+     */
+    private var buttonSendFlag = false
+
+    /**
+     * 按键发送线程发送的数据缓存
+     */
+    private var buttonSendData = ""
+
+    /**
+     * 按键发送线程
+     */
+    private var buttonSendThread = ButtonSendThread()
+
+    /**
+     * 按键发送内容的存储 HashMap
+     */
+    private val buttonSendDataHashMap by lazy { HashMap<Int,String>() }
 
     /**
     * 蓝牙设配器各种状态的广播监听器
@@ -555,25 +617,7 @@ class SerialPort private constructor(private val context: Context){
         outputStream?.write(bosNew)
     }
 
-    /**
-     * 按键发送线程标志位
-     */
-    private var buttonSendFlag = false
 
-    /**
-     * 按键发送线程发送的数据
-     */
-    private var buttonSendData = ""
-
-    /**
-     * 按键发送线程
-     */
-    private var buttonSendThread = ButtonSendThread()
-
-    /**
-     * 按键发送内容的存储 HashMap
-     */
-    private val buttonSendDataHashMap by lazy { HashMap<Int,String>() }
 
     /**
      * 根据按键ID设置每个按键按下对应发送的内容
@@ -692,5 +736,107 @@ class SerialPort private constructor(private val context: Context){
 
 
 
+    /**
+     * 根据开关按键的ID设置每个按键按下对应发送的内容
+     * @Author Shanya
+     * @Date 2020/7/19 22:46
+     * @Version 1.0.0
+     */
+    fun setSwitchSendData(id:Int,data:String){
+        switchSendDataHashMap[id] = data
+    }
+
+    val sendSwitchListener by lazy {
+        View.OnClickListener {
+
+            /**
+             * 若蓝牙未打开则取消发送，并弹出 Toast 提示
+             */
+            if (!bluetoothAdapter.isEnabled) {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.open_bluetooth),
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@OnClickListener
+            }
+            /**
+             * 若设备未连接则取消发送，并弹出 Toast 提示
+             */
+            if (bluetoothSocket == null) {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.connect_device),
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@OnClickListener
+            }
+
+            /**
+             * 获取对应开关状态,并将开关上的显示字符更新
+             */
+            if (!switchStatusHashMap.contains(it.id)) {
+                switchStatusHashMap[it.id] = true
+                (it as Button).text = switchOnTextHashMap[it.id]
+            }else{
+                if (switchStatusHashMap[it.id] != null) {
+                    if (switchStatusHashMap[it.id]!!){
+                        switchStatusHashMap[it.id] = false
+                        (it as Button).text = switchOffTextHashMap[it.id]
+                    }else{
+                        switchStatusHashMap[it.id] = true
+                        (it as Button).text = switchOnTextHashMap[it.id]
+                    }
+                }else{
+                    switchStatusHashMap[it.id] = false
+                }
+            }
+
+            /**
+             * 获取对应开关打开发出的数据
+             */
+            switchSendStringBuilder.clear()
+            switchSendTrueCount = 0
+            for (data in switchStatusHashMap) {
+                if (data.value){
+                    switchSendTrueCount++
+                    switchSendStringBuilder.append(switchSendDataHashMap[data.key])
+                }
+            }
+
+            /**
+             * 判断当前开关发送线程的状态
+             */
+            switchSendFlag = if (switchSendTrueCount == 0){
+                switchSendStringBuilder.clear()
+                switchSendStringBuilder.append("0")
+                switchSendData = switchSendStringBuilder.toString()
+                Thread.sleep(10)
+                false
+            }else{
+                switchSendThread = SwitchSendThread()
+                switchSendData = switchSendStringBuilder.toString()
+                switchSendThread.start()
+                true
+            }
+
+        }
+    }
+
+    /**
+    * 按键用的发送线程，点击开启发送，再次点击取消
+    * @Author Shanya
+    * @Date 2020/7/20 20:26
+    * @Version 1.0.0
+    */
+    private inner class SwitchSendThread:Thread(){
+        override fun run() {
+            super.run()
+            while (switchSendFlag) {
+                sleep(10)
+                sendData(switchSendData)
+            }
+        }
+    }
 }
 

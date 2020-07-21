@@ -36,5 +36,16 @@ class MainActivity : AppCompatActivity() {
 
         button4.setOnTouchListener(serialPort.sendButtonListener)
 
+        serialPort.setSwitchSendData(button5.id,"5")
+        serialPort.setSwitchSendData(button6.id,"6")
+
+        serialPort.switchOnTextHashMap[button5.id] = "on"
+        serialPort.switchOnTextHashMap[button6.id] = "on"
+
+        serialPort.switchOffTextHashMap[button5.id] = "off"
+        serialPort.switchOffTextHashMap[button6.id] = "off"
+
+        button5.setOnClickListener(serialPort.sendSwitchListener)
+        button6.setOnClickListener(serialPort.sendSwitchListener)
     }
 }
