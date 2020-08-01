@@ -6,7 +6,7 @@
 
 ------
 
-SerialPort 是一个开源的对 Android 蓝牙串口通信的轻量封装库，轻松解决了构建自己的串口调试APP的复杂程度，让人可以专注追求自己设计，不用为考虑蓝牙串口底层的配置。
+SerialPort 是一个开源的对 Android 蓝牙串口通信的轻量封装库，轻松解决了构建自己的串口调试APP的复杂程度，让人可以专注追求自己设计，不用考虑蓝牙串口底层的配置。
 
 - 集成搜索Activity，不用自己费力去实现
 - 通过回调处理接收数据
@@ -14,7 +14,9 @@ SerialPort 是一个开源的对 Android 蓝牙串口通信的轻量封装库，
 - 接收与发送均可使用十六进制和字符串
 - 内置普通按键和Toggle型按键Listener
 
+### QQ技术交流群
 
+![1596285826183](https://gitee.com/Shanya/PicBed/raw/master/SerialPortUtil/1596285826183.png)
 
 ### 最新版本 V0.1.0.200721_beta
 
@@ -70,6 +72,10 @@ compileOptions {
 ### 使用
 
 ------
+
+> Tips:
+>
+> **以下所有代码块，第一块是Java语法，第二块是Kotlin语法**
 
 #### 获取 SerialPort 对象
 
@@ -298,7 +304,4 @@ val arrayAdapter = serialPort.unPairedDevicesArrayAdapter
 > Tips:
 >
 > 未配对设置列表只能在搜索完成后才能获取到内容
-
-
-
 
