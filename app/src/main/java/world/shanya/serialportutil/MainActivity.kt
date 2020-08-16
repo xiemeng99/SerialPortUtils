@@ -17,7 +17,7 @@ class MainActivity : AppCompatActivity() {
 
         serialPort.readDataType = SerialPort.READ_DATA_TYPE_STRING
 
-        serialPort.getReceivedData{
+        serialPort.getReceivedData{it
             println(it)
         }
 
@@ -31,6 +31,17 @@ class MainActivity : AppCompatActivity() {
             serialPort.openSearchPage(this)
         }
 
+        serialPort.getScanStatus {
+
+        }
+
+        val arrayAdapter = serialPort.pairedDevicesArrayAdapter
+        val arrayAdapter2 = serialPort.unPairedDevicesArrayAdapter
+
+        serialPort.getConnectionResult {
+
+        }
+
         serialPort.setButtonSendData(button3.id,"3")
         serialPort.setButtonSendData(button4.id,"4")
 
@@ -41,11 +52,11 @@ class MainActivity : AppCompatActivity() {
         serialPort.setSwitchSendData(button5.id,"5")
         serialPort.setSwitchSendData(button6.id,"6")
 
-        serialPort.switchOnTextHashMap[button5.id] = "on"
-        serialPort.switchOnTextHashMap[button6.id] = "on"
+        serialPort.setSwitchOnText(button5.id,"on")
+        serialPort.setSwitchOnText(button6.id,"on")
 
-        serialPort.switchOffTextHashMap[button5.id] = "off"
-        serialPort.switchOffTextHashMap[button6.id] = "off"
+        serialPort.setSwitchOffText(button5.id,"off")
+        serialPort.setSwitchOffText(button6.id,"off")
 
         button5.setOnClickListener(serialPort.sendSwitchListener)
         button6.setOnClickListener(serialPort.sendSwitchListener)

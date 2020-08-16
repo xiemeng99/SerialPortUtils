@@ -171,12 +171,12 @@ class SerialPort private constructor(private val context: Context){
     /**
      * 开关按键打开时显示内容
      */
-    val switchOnTextHashMap by lazy { HashMap<Int,String>() }
+    private val switchOnTextHashMap by lazy { HashMap<Int,String>() }
 
     /**
      * 开关按键关闭时显示内容
      */
-    val switchOffTextHashMap by lazy { HashMap<Int,String>() }
+    private val switchOffTextHashMap by lazy { HashMap<Int,String>() }
 
     /**
      * 开关按键状态
@@ -619,7 +619,25 @@ class SerialPort private constructor(private val context: Context){
         outputStream?.write(bosNew)
     }
 
+    /**
+     * 根据Toggle按键ID设置每个按键打开时显示的内容
+     * @Author Shanya
+     * @Date 2020/8/16 14:46
+     * @Version 1.0.0
+     */
+    fun setSwitchOnText(id:Int,text:String){
+        switchOnTextHashMap[id] = text;
+    }
 
+    /**
+     * 根据Toggle按键ID设置每个按键关闭时显示的内容
+     * @Author Shanya
+     * @Date 2020/8/16 14:46
+     * @Version 1.0.0
+     */
+    fun setSwitchOffText(id:Int,text:String){
+        switchOffTextHashMap[id] = text;
+    }
 
     /**
      * 根据按键ID设置每个按键按下对应发送的内容
