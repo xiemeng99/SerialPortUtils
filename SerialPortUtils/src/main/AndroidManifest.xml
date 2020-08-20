@@ -16,8 +16,14 @@
 
     <application>
         <activity
+            android:name=".PermissionActivity"
+            android:theme="@style/PermissionActivityTheme">
+
+        </activity>
+        <activity
             android:name=".SearchActivity"
-            android:theme="@style/SearchActivityTheme">
+            android:theme="@style/AppTheme">
+
         </activity>
     </application>
 

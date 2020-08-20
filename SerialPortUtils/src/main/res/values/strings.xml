@@ -2,7 +2,7 @@
     <string name="no_paired">No paired devices found</string>
     <string name="no_available">No equipment available</string>
     <string name="paired_devices">Paired devices</string>
-    <string name="unpaired_devices">Unpaired devices</string>
+    <string name="unpaired_devices">Available devices</string>
     <string name="button_scan">Scan</string>
 
     <string name="no_permission">Permission denied</string>
@@ -12,6 +12,10 @@
     <string name="connect_success">connected successfully</string>
     <string name="connection_failed">Connection failed</string>
     <string name="disconnect">Disconnect</string>
+    <string name="drop_down_search">Drop-down search</string>
+    <string name="connecting">Connecting…</string>
 
+    <string name="select_device_to_connect">Select a device connection</string>
+    <string name="searching">Searching…</string>
 
 </resources>
