@@ -1,20 +1,3 @@
----
-abbrlink: 2fd981ea
-title: Android 蓝牙串口通信工具类 SeriaPortUtil
-author: Shanya
-top: true
-cover: 
-date: 2020-05-04 13:59:16
-description: 封装一个蓝牙串口工具类，方便以后使用
-categories:
-  - Android
-  - Java
-tags:
-- Android
-- SerialPort
-
----
-
 # SerialPortUtil
 
 ## 介绍
