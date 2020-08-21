@@ -1,15 +1,9 @@
 package world.shanya.serialportutil
 
-import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
-import world.shanya.serialportutils.PermissionActivity
 import world.shanya.serialportutils.SerialPort
-import world.shanya.serialportutils.SerialPortOld
 
 
 class MainActivity : AppCompatActivity() {
@@ -23,8 +17,13 @@ class MainActivity : AppCompatActivity() {
             serialPort.openSearchPage(this)
         }
 
+        serialPort.editTextHexLimit(editTextTextPersonName2)
+
+        serialPort.readDataType = SerialPort.DataType.READ_HEX
+        serialPort.sendDataType = SerialPort.DataType.SEND_HEX
+
         button2.setOnClickListener {
-            serialPort.disconnect()
+            serialPort.sendData(editTextTextPersonName2.text.toString())
         }
 
         serialPort.getReadData {
