@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="no_paired">没有找到已配对设备</string>
+    <string name="no_available">无可用设备</string>
+    <string name="paired_devices">已配对设备</string>
+    <string name="unpaired_devices">可用设备</string>
+    <string name="button_scan">搜索</string>
+    <string name="no_permission">未取得权限</string>
+    <string name="open_bluetooth">请先打开蓝牙</string>
+    <string name="connect_device">请先连接设备</string>
+    <string name="connect_success">连接成功</string>
+    <string name="connection_failed">连接失败</string>
+    <string name="disconnect">断开连接</string>
+    <string name="drop_down_search">下拉搜索</string>
+    <string name="connecting">连接中……</string>
+    <string name="select_device_to_connect">选择一个设备连接</string>
+    <string name="searching">搜索中……</string>
+</resources>
