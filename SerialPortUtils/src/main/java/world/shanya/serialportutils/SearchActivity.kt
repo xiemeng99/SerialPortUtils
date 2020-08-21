@@ -118,6 +118,7 @@ class SearchActivity : AppCompatActivity() {
 
                 dialog.show()
 
+                serialPort.cancelDiscover()
 
                 serialPort.connectDevice(Device(it.textViewDeviceName.text.toString(),it.textViewDeviceAddress.text.toString()))
 
@@ -161,6 +162,8 @@ class SearchActivity : AppCompatActivity() {
             holder.itemView.setOnClickListener {
 
                 dialog.show()
+
+                serialPort.cancelDiscover()
 
                 serialPort.connectDevice(Device(it.textViewDeviceName.text.toString(),it.textViewDeviceAddress.text.toString()))
 

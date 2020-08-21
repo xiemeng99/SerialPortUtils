@@ -1,5 +1,6 @@
 package world.shanya.serialportutils
 
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
@@ -9,6 +10,12 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
+import android.text.Editable
+import android.text.InputType
+import android.text.TextWatcher
+import android.text.method.DigitsKeyListener
+import android.text.method.ReplacementTransformationMethod
+import android.widget.EditText
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
@@ -16,6 +23,7 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import java.io.IOException
 import java.io.InputStream
+import java.lang.Exception
 import java.nio.charset.StandardCharsets
 
 class SerialPort private constructor(private val context: Context) : SerialPortCallback() {
@@ -23,7 +31,7 @@ class SerialPort private constructor(private val context: Context) : SerialPortC
     val pairedDevicesList = ArrayList<Device>()
     val unPairedDevicesList = ArrayList<Device>()
 
-    var connectedDevice : Device ?= null
+    private var connectedDevice : Device ?= null
 
     var readDataType = DataType.READ_STRING
     var sendDataType = DataType.SEND_STRING
@@ -70,7 +78,6 @@ class SerialPort private constructor(private val context: Context) : SerialPortC
 
             //如果当前正在搜索则先取消搜索重新打开
             if (bluetoothAdapter.isDiscovering){
-//                scanStatusCallback?.invoke(false)
                 bluetoothAdapter.cancelDiscovery()
             }
 
@@ -85,6 +92,63 @@ class SerialPort private constructor(private val context: Context) : SerialPortC
 
             return true
         }
+    }
+
+    //十六进制输入框监听
+    fun editTextHexLimit(editText: EditText){
+        editText.inputType = InputType.TYPE_CLASS_TEXT
+        editText.keyListener = DigitsKeyListener.getInstance("abcdefABCDEF0123456789")
+        editText.transformationMethod = object : ReplacementTransformationMethod() {
+            override fun getOriginal(): CharArray {
+                return charArrayOf('a','b','c','d','e','f')
+            }
+
+            override fun getReplacement(): CharArray {
+                return charArrayOf('A','B','C','D','E','F')
+            }
+
+        }
+        editText.addTextChangedListener(object :TextWatcher{
+            override fun afterTextChanged(p0: Editable?) {
+
+            }
+
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+
+            }
+
+            @SuppressLint("SetTextI18n")
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                if (count == 1){
+                    if ((s!!.length + 1) % 3 == 0){
+                        editText.setText("$s ")
+                        editText.setSelection(s.length + 1)
+                    }
+                }else if (count == 0){
+                    if (s!!.isNotEmpty() && s.length % 3 == 0){
+                        editText.setText(s.subSequence(0,s.length - 1))
+                        editText.setSelection(s.length - 1)
+                    }
+                }
+            }
+
+        })
+    }
+
+    //发送数据函数
+    fun sendData(data:String){
+        if (!bluetoothAdapter.isEnabled){
+            bluetoothAdapter.enable()
+            return
+        }
+        if (bluetoothSocket == null) {
+            Toast.makeText(context,context.getString(R.string.connect_device),Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        Thread{
+            send(data)
+        }.start()
     }
 
     //连接设备
@@ -222,11 +286,15 @@ class SerialPort private constructor(private val context: Context) : SerialPortC
     //字符串转成16进制
     private fun stringToHex(str: String): ArrayList<Byte>? {
         val chars = "0123456789ABCDEF".toCharArray()
-        val bs = str.toCharArray()
+        val stingTemp = str.replace(" ","")
+        val bs = stingTemp.toCharArray()
         var bit = 0
         var i = 0
         val intArray = ArrayList<Byte>()
-        if (str.length and 0x01 != 0){
+        if (stingTemp.length and 0x01 != 0){
+            MainScope().launch {
+                Toast.makeText(context,"请输入的十六进制数据保持两位，不足前面补0",Toast.LENGTH_SHORT).show()
+            }
             throw  RuntimeException("字符个数不是偶数")
         }
         while (i < bs.size) {
@@ -245,50 +313,40 @@ class SerialPort private constructor(private val context: Context) : SerialPortC
         return intArray
     }
 
-    //协程发送
+    //发送数据
     private fun send(data : String){
-        val outputStream = bluetoothSocket?.outputStream
-        var n = 0
-        val bos: ByteArray = if (sendDataType == DataType.SEND_STRING) {
-            data.toByteArray()
-        }else{
-            stringToHex(data)?.toList()!!.toByteArray()
-        }
+        try {
+            val outputStream = bluetoothSocket?.outputStream
+            var n = 0
+            val bos: ByteArray = if (sendDataType == DataType.SEND_STRING) {
+                data.toByteArray()
+            }else{
+                stringToHex(data)?.toList()!!.toByteArray()
+            }
 
-        for (bo in bos) {
-            if (bo.toInt() == 0x0a) {
+            for (bo in bos) {
+                if (bo.toInt() == 0x0a) {
+                    n++
+                }
+            }
+            val bosNew = ByteArray(bos.size + n)
+            n = 0
+            for (bo in bos) {
+                if (bo.toInt() == 0x0a) {
+                    bosNew[n++] = 0x0d
+                    bosNew[n] = 0x0a
+                } else {
+                    bosNew[n] = bo
+                }
                 n++
             }
+            outputStream?.write(bosNew)
+        }catch (e:Exception){
+
         }
-        val bosNew = ByteArray(bos.size + n)
-        n = 0
-        for (bo in bos) {
-            if (bo.toInt() == 0x0a) {
-                bosNew[n++] = 0x0d
-                bosNew[n] = 0x0a
-            } else {
-                bosNew[n] = bo
-            }
-            n++
-        }
-        outputStream?.write(bosNew)
     }
 
-    //发送数据函数
-    fun sendData(data:String){
-        if (!bluetoothAdapter.isEnabled){
-            bluetoothAdapter.enable()
-            return
-        }
-        if (bluetoothSocket == null) {
-            Toast.makeText(context,context.getString(R.string.connect_device),Toast.LENGTH_SHORT).show()
-            return
-        }
 
-        Thread{
-            send(data)
-        }.start()
-    }
 
     //初始化
     init {
