@@ -16,7 +16,7 @@ class MainActivity : AppCompatActivity() {
         button.setOnClickListener {
             serialPort.openSearchPage(this)
         }
-
+        
         serialPort.editTextHexLimit(editTextTextPersonName2)
 
         serialPort.readDataType = SerialPort.DataType.READ_HEX
