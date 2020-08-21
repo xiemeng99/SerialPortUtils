@@ -40,9 +40,13 @@ SerialPort 是一个开源的对 Android 蓝牙串口通信的轻量封装库，
 
 ### Demo例程源码
 
+- Java版本
 
+  [下载地址](https://shanya.lanzous.com/i1NB7fw2q2h)
 
+- kotlin版本
 
+  [下载地址](https://shanya.lanzous.com/iGpDQfw2q6b)
 
 ## 开始
 
