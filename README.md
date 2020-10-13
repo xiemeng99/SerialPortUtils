@@ -317,7 +317,7 @@ serialPort.sendData("A5 0D")
 #### 接收数据
 
 ```java
-serialPort.getReceivedData(new Function1<String, Unit>() {
+serialPort.getReadData(new Function1<String, Unit>() {
     @Override
     public Unit invoke(String s) {
         // s 就是收到的数据
@@ -327,7 +327,7 @@ serialPort.getReceivedData(new Function1<String, Unit>() {
 ```
 
 ```kotlin
-serialPort.getReceivedData{it
+serialPort.getReadData{it
     // it 就是收到的数据
 }
 ```
