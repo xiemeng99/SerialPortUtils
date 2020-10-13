@@ -27,7 +27,7 @@ SerialPort 是一个开源的对 Android 蓝牙串口通信的轻量封装库，
 
 ![1596285826183](https://gitee.com/Shanya/PicBed/raw/master/SerialPortUtil/1596285826183.png)
 
-### 最新版本 V1.0.0
+### 最新版本 V1.0.2
 
 - 集成搜索Activity，不用自己费力去实现
 - 通过回调处理接收数据
