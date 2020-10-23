@@ -27,31 +27,34 @@ SerialPort 是一个开源的对 Android 蓝牙串口通信的轻量封装库，
 
 ![1596285826183](https://gitee.com/Shanya/PicBed/raw/master/SerialPortUtil/1596285826183.png)
 
-### 最新版本 V2.0.0
+### 最新版本 V2.0.3
 
 - 新特性：
-    1.接收消息通过Service接收
-    2.新增连接状态时可获取设备名和地址
-    3.移除扫描状态获取
-    4.发送类型修改为字符类型时自动取消输入框的十六进制监听
+ 1. 接收消息通过Service接收
+ 2. 新增连接状态时可获取设备名和地址
+ 3. 移除扫描状态获取
+ 4. 发送类型修改为字符类型时自动取消输入框的十六进制监听
 
 - 修复：
-    1.连接状态监听的bug
-    2.接收消息时，内容有缺失的问题
+ 1. 连接状态监听的bug
+ 2. 接收消息时，内容有缺失的问题
+ 3. SearchActivity 权限申请弹窗被覆盖，导致没有获取权限
+ 4. SearchActivity 可用设备列表标题显示
+ 5. More than one file was found with OS independent path 'META-INF/library_release.kotlin_module'
 
 ### 开源仓库地址
 
-[Github仓库](https://github.com/Shanyaliux/SerialPortUtil)
+[Github仓库](https://github.com/Shanyaliux/SerialPortUtils)
 
 ### Demo例程源码
 
 - Java版本
 
-  [下载地址](https://shanya.lanzous.com/i1NB7fw2q2h)
+  [下载地址](https://gitee.com/Shanya/ViewPagerDemoByJava)
 
 - kotlin版本
 
-  [下载地址](https://shanya.lanzous.com/iGpDQfw2q6b)
+  [下载地址](https://gitee.com/Shanya/ViewPagerDemoByKotlin)
 
 ## 开始
 
@@ -75,7 +78,7 @@ app模块的 build.gradle 加入以下代码即可：
 ```groovy
 dependencies {
     // 省略其代码...
-    implementation 'com.github.Shanyaliux:SerialPortUtils:V2.0.0'
+    implementation 'com.github.Shanyaliux:SerialPortUtils:V2.0.3'
 }
 ```
 
@@ -116,11 +119,11 @@ serialPort.openSearchPage(this)
 #### 搜索设备
 
 ```java
-serialPort.doDiscovery(this);
+serialPort.doDiscovery();
 ```
 
 ```kotlin
-serialPort.doDiscovery(this)
+serialPort.doDiscovery()
 ```
 
 以上代码执行搜索设备操作
@@ -161,79 +164,49 @@ ArrayList<Device> arrayList = serialPort.getUnPairedDevicesList();
 val arrayList = serialPort.unPairedDevicesList
 ```
 
-#### 获取搜索状态
-
+#### 获取连接状态
+//其中device是已连接的设备信息（包含name和address）
 ```java
-serialPort.getScanStatus(new Function1<Boolean, Unit>() {
-    @Override
-    public Unit invoke(Boolean aBoolean) {
-        //aBoolean 就是当前的搜索状态
-        return null;
+serialPort.getConnectedStatus((aBoolean, device) -> {
+
+    if (aBoolean) {
+        //已连接
+
+    } else {
+        //未连接
+
     }
+    return null;
 });
 ```
 
 ```kotlin
-serialPort.getScanStatus{it
-    // it 就是当前的搜索状态
+serialPort.getConnectedStatus { status, device ->
+
+    if (status) {
+        //已连接
+    } else {
+        //未连接
+    }
+
 }
-```
-
-#### 获取连接状态
-
-```java
-boolean connectStatus =  serialPort.getConnectStatus();
-```
-
-```kotlin
-val connectStatus = serialPort.getConnectStatus()
 ```
 
 以上代码就是获取连接状态
-
-#### 设备断开监听
-
-```java
-serialPort.deviceDisconnect(new Function0<Unit>() {
-    @Override
-    public Unit invoke() {
-        //执行设备断开后你想执行的代码
-        return null;
-    }
-});
-```
-
-```kotlin
-serialPort.deviceDisconnect { 
-	//执行设备断开后你想执行的代码
-}
-```
-
-#### 断开连接
-
-```java
-serialPort.disconnect();
-```
-
-```kotlin
-serialPort.disconnect()
-```
-
-以上代码手动断开已连接设备
 
 #### 设置接收数据类型
 
 |   可选参数（默认是 字符类型）   |          |
 | :-----------------------------: | :------: |
-| SerialPort.DataType.READ_STRING | 字符类型 |
-|  SerialPort.DataType.READ_HEX   | 十六进制 |
+| SerialPort.READ_STRING | 字符类型 |
+|  SerialPort.READ_HEX   | 十六进制 |
 
 ```java
-serialPort.setReadDataType(SerialPort.DataType.READ_HEX);
+serialPort.setReceivedDataType(SerialPort.READ_HEX);
 ```
 
 ```kotlin
-serialPort.readDataType = SerialPort.DataType.READ_HEX
+serialPort.setReceivedDataType(SerialPort.READ_HEX)
 ```
 
 以上代码将接收数据的类型切换为十六进制
@@ -242,15 +215,15 @@ serialPort.readDataType = SerialPort.DataType.READ_HEX
 
 |   可选参数（默认是 字符类型）   |          |
 | :-----------------------------: | :------: |
-| SerialPort.DataType.SEND_STRING | 字符类型 |
-|  SerialPort.DataType.SEND_HEX   | 十六进制 |
+| SerialPort.SEND_STRING | 字符类型 |
+|  SerialPort.SEND_HEX   | 十六进制 |
 
 ```java
-serialPort.setSendDataType(SerialPort.DataType.SEND_HEX);
+serialPort.setSendDataType(SerialPort.SEND_HEX);
 ```
 
 ```kotlin
-serialPort.sendDataType = SerialPort.DataType.SEND_HEX
+serialPort.setSendDataType(SerialPort.SEND_HEX)
 ```
 
 以上代码将发送数据的类型切换为十六进制
@@ -264,24 +237,14 @@ serialPort.sendDataType = SerialPort.DataType.SEND_HEX
 或者对输入框添加监听器进行自动限制输入
 
 ```java
-serialPort.editTextHexLimit(editTextSend);
+serialPort.setEditTextHexLimit(editTextSend);
 ```
 
 ```kotlin
-serialPort.editTextHexLimit(editTextSend)
+serialPort.setEditTextHexLimit(editTextSend)
 ```
 
 以上代码为名为`editTextSend`的`EditText`对象添加了十六进制监听器
-
-取消监听则用如下代码：
-
-```java
-editTextSend = findViewById(R.id.editTextTextSend);
-```
-
-```kotlin
-editTextSend = findViewById(R.id.editTextTextSend)
-```
 
 #### 发送数据
 
@@ -320,7 +283,7 @@ serialPort.sendData("A5 0D")
 #### 接收数据
 
 ```java
-serialPort.getReadData(new Function1<String, Unit>() {
+serialPort.getReceivedData(new Function1<String, Unit>() {
     @Override
     public Unit invoke(String s) {
         // s 就是收到的数据
@@ -330,7 +293,7 @@ serialPort.getReadData(new Function1<String, Unit>() {
 ```
 
 ```kotlin
-serialPort.getReadData{it
+serialPort.getReceivedData{it
     // it 就是收到的数据
 }
 ```
