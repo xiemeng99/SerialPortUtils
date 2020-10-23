@@ -27,16 +27,19 @@ SerialPort 是一个开源的对 Android 蓝牙串口通信的轻量封装库，
 
 ![1596285826183](https://gitee.com/Shanya/PicBed/raw/master/SerialPortUtil/1596285826183.png)
 
-### 最新版本 V1.0.2
+### 最新版本 V2.0.0
 
-- 集成搜索Activity，不用自己费力去实现
-- 通过回调处理接收数据
-- 异步处理发送
-- 接收与发送均可使用十六进制和字符串
+- 新特性：
+    1.接收消息通过Service接收
+    2.新增连接状态时可获取设备名和地址
+    3.移除扫描状态获取
+    4.发送类型修改为字符类型时自动取消输入框的十六进制监听
+
+- 修复：
+    1.连接状态监听的bug
+    2.接收消息时，内容有缺失的问题
 
 ### 开源仓库地址
-
-[Gitee仓库](https://gitee.com/Shanya/SerialPortUtils)
 
 [Github仓库](https://github.com/Shanyaliux/SerialPortUtil)
 
@@ -72,7 +75,7 @@ app模块的 build.gradle 加入以下代码即可：
 ```groovy
 dependencies {
     // 省略其代码...
-    implementation 'com.gitee.Shanya:SerialPortUtils:V1.0.0'
+    implementation 'com.github.Shanyaliux:SerialPortUtils:V2.0.0'
 }
 ```
 
