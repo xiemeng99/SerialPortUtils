@@ -15,16 +15,17 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application>
+        <service
+            android:name=".SerialPortService"
+            android:enabled="true"
+            android:exported="true"></service>
+
         <activity
             android:name=".PermissionActivity"
-            android:theme="@style/PermissionActivityTheme">
-
-        </activity>
+            android:theme="@style/PermissionActivityTheme"></activity>
         <activity
             android:name=".SearchActivity"
-            android:theme="@style/AppTheme">
-
-        </activity>
+            android:theme="@style/AppTheme"></activity>
     </application>
 
 </manifest>

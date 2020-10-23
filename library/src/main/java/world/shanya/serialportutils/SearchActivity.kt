@@ -13,17 +13,26 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.activity_search.*
 import kotlinx.android.synthetic.main.device_cell.view.*
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 
+/**
+ * 扫描界面的Activity
+ */
 class SearchActivity : AppCompatActivity() {
 
-    private lateinit var dialog: Dialog
+    /**
+     * SerialPort实例
+     */
     private lateinit var serialPort: SerialPort
+
+    /**
+     * 连接时显示的进度对话框
+     */
+    private lateinit var dialog: Dialog
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_search)
+
 
         serialPort = SerialPort.getInstance(this)
         dialog = Dialog(this@SearchActivity)
@@ -34,38 +43,29 @@ class SearchActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        val actionBar = actionBar
-        actionBar?.setDisplayHomeAsUpEnabled(true)
 
-        serialPort.cancelDiscover()
-
-        if(serialPort.doDiscovery(this)){
+        if (serialPort.doDiscover()) {
             swipeRedreshLayout.isRefreshing = true
             title = getString(R.string.searching)
-        }else{
+        } else {
             swipeRedreshLayout.isRefreshing = false
         }
 
-        serialPort.getScanStatus {
-            if (it){
+        serialPort._getScanStatus {
+            if (it) {
                 swipeRedreshLayout.isRefreshing = true
-            }else{
+            } else {
                 swipeRedreshLayout.isRefreshing = false
                 title = getString(R.string.select_device_to_connect)
             }
-
         }
 
         swipeRedreshLayout.setOnRefreshListener {
-            serialPort.doDiscovery(this)
+            serialPort.doDiscover()
             title = getString(R.string.searching)
         }
 
-        serialPort.deviceConnect {
-            finish()
-        }
-
-        serialPort.deviceDisconnect {
+        serialPort._getConnectedStatus {
             finish()
         }
 
@@ -84,14 +84,9 @@ class SearchActivity : AppCompatActivity() {
             addItemDecoration(DividerItemDecoration(this@SearchActivity,DividerItemDecoration.VERTICAL))
         }
 
-        serialPort.findPairedDevice {
-            pairedDevicesAdapter.setPairedDevice(serialPort.pairedDevicesList)
-        }
-
         serialPort.findUnPairedDevice {
             unPairedDevicesAdapter.setUnPairedDevice(serialPort.unPairedDevicesList)
         }
-
     }
 
     override fun onDestroy() {
@@ -100,12 +95,12 @@ class SearchActivity : AppCompatActivity() {
         dialog.dismiss()
     }
 
-    inner class PairedDevicesAdapter internal constructor(context: Context):RecyclerView.Adapter<PairedDevicesAdapter.PairedDevicesViewHolder>(){
+    inner class PairedDevicesAdapter internal constructor(context: Context): RecyclerView.Adapter<PairedDevicesAdapter.PairedDevicesViewHolder>(){
 
         private val inflater: LayoutInflater = LayoutInflater.from(context)
         private var pairedDevices = ArrayList<Device>()
 
-        inner class PairedDevicesViewHolder(itemView:View) :RecyclerView.ViewHolder(itemView){
+        inner class PairedDevicesViewHolder(itemView: View) :RecyclerView.ViewHolder(itemView){
             val textViewDeviceName: TextView = itemView.findViewById(R.id.textViewDeviceName)
             val textViewDeviceAddress: TextView = itemView.findViewById(R.id.textViewDeviceAddress)
         }
@@ -114,15 +109,14 @@ class SearchActivity : AppCompatActivity() {
             val holder = PairedDevicesViewHolder(inflater.inflate(R.layout.device_cell,parent,false))
 
             holder.itemView.setOnClickListener {
-
-
                 dialog.show()
-
                 serialPort.cancelDiscover()
-
-                serialPort.connectDevice(Device(it.textViewDeviceName.text.toString(),it.textViewDeviceAddress.text.toString()))
-
-
+                serialPort.connectDevice(
+                    Device(
+                        it.textViewDeviceName.text.toString(),
+                        it.textViewDeviceAddress.text.toString()
+                    )
+                )
             }
 
             return holder
@@ -160,13 +154,14 @@ class SearchActivity : AppCompatActivity() {
             val holder = UnPairedDevicesViewHolder(inflater.inflate(R.layout.device_cell,parent,false))
 
             holder.itemView.setOnClickListener {
-
                 dialog.show()
-
                 serialPort.cancelDiscover()
-
-                serialPort.connectDevice(Device(it.textViewDeviceName.text.toString(),it.textViewDeviceAddress.text.toString()))
-
+                serialPort.connectDevice(
+                    Device(
+                        it.textViewDeviceName.text.toString(),
+                        it.textViewDeviceAddress.text.toString()
+                    )
+                )
             }
             return holder
         }
@@ -174,7 +169,6 @@ class SearchActivity : AppCompatActivity() {
         override fun getItemCount(): Int {
             return unPairedDevices.size
         }
-
 
         override fun onBindViewHolder(holder: UnPairedDevicesViewHolder, position: Int) {
             val current = unPairedDevices[position]
@@ -187,7 +181,5 @@ class SearchActivity : AppCompatActivity() {
             notifyDataSetChanged()
         }
     }
-
-
 
 }
