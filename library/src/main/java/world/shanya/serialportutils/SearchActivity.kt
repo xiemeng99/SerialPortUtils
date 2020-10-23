@@ -7,10 +7,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.permissionx.guolindev.PermissionX
 import kotlinx.android.synthetic.main.activity_search.*
 import kotlinx.android.synthetic.main.device_cell.view.*
 
@@ -33,6 +35,27 @@ class SearchActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_search)
 
+        if (!PermissionX.isGranted(this, android.Manifest.permission.ACCESS_FINE_LOCATION)) {
+            PermissionX.init(this)
+                .permissions(android.Manifest.permission.ACCESS_FINE_LOCATION)
+                .explainReasonBeforeRequest()
+                .onExplainRequestReason { scope, deniedList ->
+                    val message = "需要您同意位置权限用于搜索设备，否则搜索功能将不可用。"
+                    scope.showRequestReasonDialog(deniedList, message, "确定", "取消")
+                }
+                .onForwardToSettings { scope, deniedList ->
+                    val message = "需要您去设置页面同意位置权限用于搜索设备，否则搜索功能将不可用。"
+                    scope.showForwardToSettingsDialog(deniedList, message, "确定", "取消")
+                }
+                .request { allGranted, grantedList, deniedList ->
+                    @Suppress("ControlFlowWithEmptyBody")
+                    if (allGranted) {
+
+                    } else {
+                        Toast.makeText(this, "您拒绝了如下权限：$deniedList", Toast.LENGTH_SHORT).show()
+                    }
+                }
+        }
 
         serialPort = SerialPort.getInstance(this)
         dialog = Dialog(this@SearchActivity)
