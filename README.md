@@ -105,11 +105,11 @@ val serialPort = SerialPort.getInstance(this)
 #### 打开搜索页面
 
 ```java
-serialPort.openSearchPage(MainActivity.this);
+serialPort.openSearchPage();
 ```
 
 ```kotlin
-serialPort.openSearchPage(this)
+serialPort.openSearchPage()
 ```
 
 以上代码打开内部的搜索页面。该页面通过下拉操作进行搜索新设备。如下图所示：
